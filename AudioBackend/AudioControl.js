@@ -44,8 +44,10 @@ async function repeatCheck(bot) {
 
 export async function nextAudio(bot) {
   if (currentTrack >= totalTrack - 1) {
+    await interaction.reply({ content: 'You are at the end of the playlist.'});
     await repeatCheck(bot);
   } else {
+    await interaction.reply({ content: 'Playing next music' });
     updatePlaylist('next');
     return await playAudio(bot);
   }

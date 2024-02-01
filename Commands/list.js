@@ -19,10 +19,36 @@
  *
  ***************************************************************************/
 
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder } from 'discord.js';
 import { readdir } from 'node:fs';
 
 const musicFolder = './music';
+
+function createEmbed(bot, trackList, pages, page, numPages) {
+  const embed = new EmbedBuilder();
+  embed.setAuthor({ name: `${bot.user.username} List`, iconURL: bot.user.avatarURL() });
+  embed.addFields({ name: `Listing ${trackList.length} audio tracks...`, value: `\`\`\`\n${pages[page - 1].join('\n')}\n\`\`\`` });
+  embed.setFooter({ text: `Page ${page}/${numPages}` });
+  embed.setColor('#0066ff');
+  return embed;
+}
+
+function createActionRow(page, numPages) {
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId('previous')
+        .setLabel('Previous')
+        .setStyle('Primary')
+        .setDisabled(page === 1), // Disable if on the first page
+      new ButtonBuilder()
+        .setCustomId('next')
+        .setLabel('Next')
+        .setStyle('Primary')
+        .setDisabled(page === numPages), // Disable if on the last page
+    );
+  return row;
+}
 
 export default {
   data: new SlashCommandBuilder()
@@ -33,7 +59,7 @@ export default {
         .setDescription('Input a number to change the page of the list')
     ),
   async execute(interaction, bot) {
-    const page = interaction.options.getInteger('page') || 1; // If no page is specified, default to page 1
+    let page = interaction.options.getInteger('page') || 1; // If no page is specified, default to page 1
     readdir(musicFolder, async(err, files) => {
       if (err) {
         console.error(err);
@@ -52,12 +78,31 @@ export default {
           pages.push(trackList.slice(start, end));
         }
         // Send the specified page with the page number and total number of pages
-        const listEmbed = new EmbedBuilder();
-        listEmbed.setAuthor({ name: `${bot.user.username} List`, iconURL: bot.user.avatarURL() });
-        listEmbed.addFields({ name: `Listing ${trackList.length} audio tracks...`, value: `\`\`\`\n${pages[page - 1].join('\n')}\n\`\`\`` });
-        listEmbed.setFooter({ text: `Page ${page}/${numPages}` });
-        listEmbed.setColor('#0066ff');
-        await interaction.reply({ embeds: [listEmbed] });
+        const listEmbed = createEmbed(bot, trackList, pages, page, numPages);
+        const row = createActionRow(page, numPages);
+
+        await interaction.reply({ embeds: [listEmbed], components: [row] });
+
+        // Create a message collector to listen for button clicks
+        const filter = i => i.customId === 'previous' || i.customId === 'next';
+        const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });
+
+        collector.on('collect', async i => {
+          if (i.customId === 'previous' && page !== 1) {
+            // Decrease page number and update message
+            page--;
+          } else if (i.customId === 'next' && page !== numPages) {
+            // Increase page number and update message
+            page++;
+          }
+
+          // Update the embed with the new page
+          const updatedEmbed = createEmbed(bot, trackList, pages, page, numPages);
+          const updatedRow = createActionRow(page, numPages);
+
+          // Update the message
+          await i.update({ embeds: [updatedEmbed], components: [updatedRow] });
+        });
       }
     });
   }
