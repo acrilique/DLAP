@@ -42,12 +42,11 @@ async function repeatCheck(bot) {
   }
 }
 
-export async function nextAudio(bot) {
+export async function nextAudio(bot, interaction) {
   if (currentTrack >= totalTrack - 1) {
-    await interaction.reply({ content: 'You are at the end of the playlist.'});
-    await repeatCheck(bot);
+    return await repeatCheck(bot);
   } else {
-    await interaction.reply({ content: 'Playing next music' });
+    await interaction.reply({ content: 'Playing next track' });
     updatePlaylist('next');
     return await playAudio(bot);
   }
@@ -57,7 +56,7 @@ export async function previousAudio(bot, interaction) {
   if (currentTrack <= 0) {
     return await interaction.reply({ content: 'You are at the beginning of the playlist, cannot go further than this', ephemeral: true });
   } else {
-    await interaction.reply({ content: 'Playing previous music' });
+    await interaction.reply({ content: 'Playing previous track' });
     player.stop();
     updatePlaylist('back');
     return await playAudio(bot);

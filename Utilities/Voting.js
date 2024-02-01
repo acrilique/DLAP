@@ -90,7 +90,7 @@ export async function skip(interaction, bot) { /*
     if (playerState === 'Playing' || playerState === 'Paused') {
       votes.clear();
       // Do something to skip the audio track here (e.g. player.stop())
-      await nextAudio(bot);
+      await nextAudio(bot, interaction);
     } else if (playerState === 'Stopped') {
       return await interaction.reply({ content: 'Cannot play next music. Player is currently stopped...', ephemeral: true });
     }
