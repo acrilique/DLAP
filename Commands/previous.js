@@ -20,20 +20,20 @@
  ***************************************************************************/
 
 import { SlashCommandBuilder } from 'discord.js';
-import { voteSkip } from '../Utilities/Voting.js';
+import { prev } from '../Utilities/Voting.js';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('previous')
     .setDescription('Goes to previous music')
-  /* .addSubcommand(subcommand =>
-      subcommand.setName('vote')
-        .setDescription('Voting to skip this audio track')) */
+    // .addSubcommand(subcommand =>
+    //   subcommand.setName('vote')
+    //     .setDescription('Voting to skip this audio track')) 
     .addSubcommand(subcommand =>
       subcommand.setName('force')
         .setDescription('Forces skip this audio track')),
   async execute(interaction, bot) {
     if (!interaction.member.voice.channel) return await interaction.reply({ content: 'You need to be in a voice channel to use this command.', ephemeral: true });
-    await voteSkip(interaction, bot);
+    await prev(interaction, bot);
   }
 };

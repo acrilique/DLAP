@@ -20,7 +20,7 @@
  ***************************************************************************/
 
 import { SlashCommandBuilder } from 'discord.js';
-import { voteSkip } from '../Utilities/Voting.js';
+import { skip } from '../Utilities/Voting.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -35,6 +35,6 @@ export default {
 
   async execute(interaction, bot) {
     if (!interaction.member.voice.channel) return await interaction.reply({ content: 'You need to be in a voice channel to use this command.', ephemeral: true });
-    await voteSkip(interaction, bot);
+    await skip(interaction, bot);
   }
 };

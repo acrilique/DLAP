@@ -37,7 +37,7 @@ async function commandCheck(interaction, bot) {
   }
 }
 
-export async function voteSkip(interaction, bot) { /*
+export async function skip(interaction, bot) { /*
   if (interaction.commandName === 'next') {
     if (nextCheck !== true) {
       // Reset the votes if the current value of nextCheck is different from the command being executed
@@ -90,9 +90,55 @@ export async function voteSkip(interaction, bot) { /*
     if (playerState === 'Playing' || playerState === 'Paused') {
       votes.clear();
       // Do something to skip the audio track here (e.g. player.stop())
-      await commandCheck(interaction, bot);
+      await nextAudio(bot);
     } else if (playerState === 'Stopped') {
       return await interaction.reply({ content: 'Cannot play next music. Player is currently stopped...', ephemeral: true });
+    }
+  }
+}
+
+export async function prev(interaction, bot) {
+  // if (interaction.options.getSubcommand() === 'vote') {
+  //   // Get the members of the voice channel who have not voted yet
+  //   const voiceChannel = interaction.member.voice.channel;
+  //   const members = voiceChannel.members.filter(m => !votes.has(m.id));
+
+  //   // Calculate the number of votes required to skip the audio track
+  //   const votesRequired = Math.ceil((members.size - votes.size) / 2);
+
+  //   // Check if the message author has already voted
+  //   if (votes.has(interaction.user.id)) {
+  //     return interaction.reply({ content: `You have already voted, wait ${votesRequired} more vote(s) to skip the audio track`, ephemeral: true });
+  //   }
+
+  //   if (playerState === 'Playing' || playerState === 'Paused') {
+  //     // Add the message author to the set of members who have voted
+  //     votes.add(interaction.user.id);
+  //     if (votes.size >= votesRequired) {
+  //       console.log('Enough votes has passed, skipping audio file...');
+  //       // Reset the number of votes
+  //       votes.clear();
+  //       // Do something to skip the audio track here (e.g. player.stop())
+  //       await previousAudio(bot, interaction);
+  //     } else {
+  //       // Send a message with the number of votes needed to skip the audio track
+  //       console.log(`${votesRequired - 1} more vote(s) needed to skip the audio track.`);
+  //       await interaction.reply({ content: `${votesRequired - 1} more vote(s) needed to skip the audio track.` });
+  //     }
+  //   } else if (playerState === 'Stopped') {
+  //     return await interaction.reply({ content: 'Cannot play next music. Player is currently stopped...', ephemeral: true });
+  //   }
+  // }
+
+  if (interaction.options.getSubcommand() === 'force') {
+    if (!interaction.member.roles.cache.has(djRole) && interaction.user.id !== ownerID && !interaction.member.permission.has(PermissionFlagsBits.ManageGuild)) return interaction.reply({ content: 'You need a specific role to execute this command', ephemeral: true });
+    console.log('Force skipping this audio track...');
+    if (playerState === 'Playing' || playerState === 'Paused') {
+      votes.clear();
+      // Do something to skip the audio track here (e.g. player.stop())
+      await previousAudio(bot, interaction);
+    } else if (playerState === 'Stopped') {
+      return await interaction.reply({ content: 'Cannot play previous music. Player is currently stopped...', ephemeral: true });
     }
   }
 }
