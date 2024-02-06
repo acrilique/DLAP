@@ -20,11 +20,12 @@
  ***************************************************************************/
 import { createAudioResource } from '@discordjs/voice';
 import { parseFile } from 'music-metadata';
-import { readdirSync, readFileSync, writeFile } from 'node:fs';
+import { readdirSync, readFileSync, statSync, writeFile } from 'node:fs';
 import { EmbedBuilder } from 'discord.js';
 import { player } from './VoiceInitialization.js';
-import { audioState, files } from './AudioControl.js';
-import { integer } from '../Commands/play.js';
+import { files } from './QueueSystem.js';
+import { audioState, tempbool, getFiles, getLocalFiles } from './AudioControl.js';
+import { integer, search_term } from '../Commands/play.js';
 const { statusChannel, txtFile } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
 let fileData;
@@ -40,19 +41,35 @@ export let audioYear;
 export let audioAlbum;
 export let duration;
 
-const inputFiles = readdirSync('music');
+export function setAudioFile(file) {
+  audio = file;
+}
+
+const inputFiles = getLocalFiles();
+
 export async function playAudio(bot) {
-  const resource = createAudioResource('music/' + audio);
+  const resource = tempbool 
+  ? createAudioResource('music/tmp/' + audio) 
+  : createAudioResource('music/' + audio);
   player.play(resource);
 
   console.log(`Now playing: ${audio}`);
+  
+  player.on('idle', () => {
+    if (audio === undefined){
+      console.log('Something went wrong, going to next track.');
+      updatePlaylist('next');
+    }
+  });
 
   audioState(0);
 
   const audioFile = audio;
 
   try {
-    const { common, format } = await parseFile('music/' + audio);
+    const { common, format } = tempbool 
+    ? await parseFile('music/tmp/' + audio)
+    : await parseFile('music/' + audio);
     metadataEmpty = false;
     if (common.title && common.artist && common.year && common.album) {
       audioTitle = common.title;
@@ -62,6 +79,7 @@ export async function playAudio(bot) {
     } else {
       metadataEmpty = true;
     }
+    
     duration = new Date(format.duration * 1000).toISOString().slice(11, 19);
   } catch (e) {
     console.error(e);
@@ -111,11 +129,15 @@ export function updatePlaylist(option) {
       audio = files[currentTrack];
       break;
     case 'reset':
-      currentTrack = 0;
-      audio = files[currentTrack];
+      if (tempbool === false) {
+        currentTrack = 0;
+        audio = files[currentTrack];
+      }
       break;
     case 'input':
-      audio = inputFiles[integer];
+      if (tempbool === false) { 
+        audio = inputFiles[integer];
+      }
       break;
     case 'stop':
       audio = 'Not Playing';

@@ -31,7 +31,7 @@ async function commandCheck(interaction, bot) {
   if (nextCheck) {
     await interaction.reply({ content: 'Playing next music' });
     player.stop();
-    return await nextAudio(bot);
+    return await nextAudio(bot, undefined);
   } else {
     await previousAudio(bot, interaction);
   }
@@ -89,7 +89,6 @@ export async function skip(interaction, bot) { /*
     console.log('Force skipping this audio track...');
     if (playerState === 'Playing' || playerState === 'Paused') {
       votes.clear();
-      // Do something to skip the audio track here (e.g. player.stop())
       await nextAudio(bot, interaction);
     } else if (playerState === 'Stopped') {
       return await interaction.reply({ content: 'Cannot play next music. Player is currently stopped...', ephemeral: true });

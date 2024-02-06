@@ -22,7 +22,7 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { parseFile } from 'music-metadata';
 import { audio, metadataEmpty, duration, audioTitle, currentTrack } from '../AudioBackend/PlayAudio.js';
-import { files, playerState } from '../AudioBackend/AudioControl.js';
+import { getFiles, playerState } from '../AudioBackend/AudioControl.js';
 import { votes } from '../Utilities/Voting.js';
 
 export default {
@@ -43,10 +43,10 @@ export default {
     // Calculate the number of votes required to skip the audio track
     const votesRequired = Math.ceil((members.size - votes.size) / 2);
 
-    if (audioID >= files.length) {
+    if (audioID >= getFiles().length) {
       audioName = 'Playlist Finished';
     } else {
-      audioName = files[audioID];
+      audioName = getFiles()[audioID];
       if (!metadataEmpty) {
         try {
           const { common } = await parseFile('music/' + audioName);
@@ -63,7 +63,7 @@ export default {
       .setAuthor({ name: `${bot.user.username} Status`, iconURL: bot.user.avatarURL() })
       .addFields(
         { name: 'State', value: `${playerState}` },
-        { name: 'Tracks', value: `${audioID}/${files.length}` },
+        { name: 'Tracks', value: `${audioID}/${getFiles().length}` },
         { name: 'Duration', value: `${duration}` },
         { name: 'Votes Needed', value: `${votesRequired}` }
       )

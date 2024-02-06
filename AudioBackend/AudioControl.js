@@ -18,17 +18,42 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  ***************************************************************************/
-import { readdirSync, readFileSync } from 'node:fs';
-import { shufflePlaylist, orderPlaylist } from './QueueSystem.js';
-import { playAudio, currentTrack, updatePlaylist } from './PlayAudio.js';
+import { statSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
+import { shufflePlaylist, orderPlaylist, setFiles, files } from './QueueSystem.js';
+import { playAudio, currentTrack, updatePlaylist, audio } from './PlayAudio.js';
 import { player } from './VoiceInitialization.js';
+import { join } from 'node:path';
 
 const { shuffle, repeat } = JSON.parse(readFileSync('./config.json', 'utf-8'));
-export const files = readdirSync('music');
+
+export let tempbool = false;
+
+export function setTempBool(bool) {
+  tempbool = bool;
+  setFiles();
+}
+
+export function getTempFiles() {
+  return readdirSync('music/tmp').filter(item => statSync( "music/tmp/"+item ).isFile());
+}
+
+export function getLocalFiles() {
+  return readdirSync('music').filter(item => statSync( "music/"+item ).isFile());
+}
+
+export function getFiles() {
+  try {
+    const files = tempbool ? getTempFiles() : getLocalFiles();
+    return files;
+  } catch (err) {
+    return getLocalFiles();
+  }
+}
+
 export let playerState;
 export let isAudioStatePaused;
 
-let totalTrack = files.length;
+let totalTrack = getLocalFiles().length;
 
 async function repeatCheck(bot) {
   if (repeat) {
@@ -42,11 +67,31 @@ async function repeatCheck(bot) {
   }
 }
 
+function deleteFile(filePath) {
+  try {
+    unlinkSync(filePath);
+    console.log(`Deleted file: ${filePath}`);
+  } catch (err) {
+    console.error(`Error deleting file: ${filePath}`, err);
+  }
+}
+
 export async function nextAudio(bot, interaction) {
+  if (tempbool === true) {
+    const files = getTempFiles();
+    const filesToDelete = files.filter(file => file.startsWith(audio));
+
+    for (const file of filesToDelete) {
+      unlinkSync(join('music/tmp', file));
+    }
+  }
+  if (readdirSync('music/tmp').length === 0) {
+    tempbool = false;
+  }
   if (currentTrack >= totalTrack - 1) {
     return await repeatCheck(bot);
   } else {
-    await interaction.reply({ content: 'Playing next track' });
+    if (interaction !== undefined) {await interaction.reply({ content: 'Playing next track' }); }
     updatePlaylist('next');
     return await playAudio(bot);
   }
@@ -85,6 +130,9 @@ export function audioState(state) {
       break;
     case 2:
       playerState = 'Stopped';
+      for (let i = 0; i < getTempFiles().length; i++) {
+        deleteFile('music/tmp/' + getTempFiles()[i]);
+      }
       totalTrack = files.length;
       isAudioStatePaused = true;
       player.stop();

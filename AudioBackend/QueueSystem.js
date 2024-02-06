@@ -19,7 +19,13 @@
  *
  ***************************************************************************/
 import { playAudio, updatePlaylist } from './PlayAudio.js';
-import { files } from './AudioControl.js';
+import { getFiles } from './AudioControl.js';
+
+export let files = getFiles();
+
+export function setFiles() {
+  files = getFiles();
+}
 
 function shuffleArray(array) {
   // Durstenfeld Shuffle
@@ -29,6 +35,7 @@ function shuffleArray(array) {
   }
 }
 export async function orderPlaylist(bot) {
+  files = getFiles();
   console.log('Playing beats by order...');
   updatePlaylist('reset');
   console.log(files);
