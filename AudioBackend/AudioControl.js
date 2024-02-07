@@ -77,11 +77,16 @@ function deleteFile(filePath) {
 }
 
 export async function nextAudio(bot, interaction) {
+
+  const files = getTempFiles();
   if (tempbool === true) {
-    const files = getTempFiles();
     const filesToDelete = files.filter(file => file.startsWith(audio));
 
     for (const file of filesToDelete) {
+      unlinkSync(join('music/tmp', file));
+    }
+  } else {
+    for (const file of files) {
       unlinkSync(join('music/tmp', file));
     }
   }

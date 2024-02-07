@@ -35,7 +35,6 @@ function shuffleArray(array) {
   }
 }
 export async function orderPlaylist(bot) {
-  files = getFiles();
   console.log('Playing beats by order...');
   updatePlaylist('reset');
   console.log(files);

@@ -26,15 +26,26 @@ const { token, statusChannel, voiceChannel, djRole, ownerID, shuffle, repeat, pr
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] });
 bot.login(token);
 
+export async function setAvatar(b64string) {
+  if (!bot.user) {
+    throw new Error('Bot is not ready yet');
+  }
+  return await bot.user.setAvatar(b64string);
+}
+
 // Slash Command Handler
 
 bot.commands = new Collection();
 const commandFiles = readdirSync('./Commands').filter(file => file.endsWith('.js'));
 
-for (const file of commandFiles) {
-  const { default: command } = await import(`./Commands/${file}`);
-  bot.commands.set(command.data.name, command);
+async function registerCommands() {
+  for (const file of commandFiles) {
+    const { default: command } = await import(`./Commands/${file}`);
+    bot.commands.set(command.data.name, command);
+  }
 }
+
+registerCommands();
 
 bot.once(Events.ClientReady, async() => {
   console.log('Bot is ready!');

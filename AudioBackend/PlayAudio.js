@@ -24,8 +24,9 @@ import { readdirSync, readFileSync, statSync, writeFile } from 'node:fs';
 import { EmbedBuilder } from 'discord.js';
 import { player } from './VoiceInitialization.js';
 import { files } from './QueueSystem.js';
-import { audioState, tempbool, getFiles, getLocalFiles } from './AudioControl.js';
+import { audioState, tempbool, getFiles, getLocalFiles, nextAudio } from './AudioControl.js';
 import { integer, search_term } from '../Commands/play.js';
+import { setAvatar } from '../bot.js';
 const { statusChannel, txtFile } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
 let fileData;
@@ -48,6 +49,10 @@ export function setAudioFile(file) {
 const inputFiles = getLocalFiles();
 
 export async function playAudio(bot) {
+  if (audio === undefined) {
+    console.log('No audio file to play!');
+    return nextAudio(bot);
+  }
   const resource = tempbool 
   ? createAudioResource('music/tmp/' + audio) 
   : createAudioResource('music/' + audio);
@@ -55,13 +60,6 @@ export async function playAudio(bot) {
 
   console.log(`Now playing: ${audio}`);
   
-  player.on('idle', () => {
-    if (audio === undefined){
-      console.log('Something went wrong, going to next track.');
-      updatePlaylist('next');
-    }
-  });
-
   audioState(0);
 
   const audioFile = audio;
@@ -79,7 +77,10 @@ export async function playAudio(bot) {
     } else {
       metadataEmpty = true;
     }
-    
+    if (common.picture && common.picture[0]) {
+      const base64String = Buffer.from(common.picture[0].data).toString('base64');
+      await setAvatar(`data:image/jpeg;base64,${base64String}`);
+    }
     duration = new Date(format.duration * 1000).toISOString().slice(11, 19);
   } catch (e) {
     console.error(e);
