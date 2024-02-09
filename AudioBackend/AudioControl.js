@@ -74,7 +74,7 @@ function nextTempFile() {
   const newTempFiles = tempFiles.slice(1);
   const lastTempFile = tempFiles[0];
   // check if lastTempFile is equal or contains the current track (audio)
-  if (lastTempFile === audio || lastTempFile.includes(audio)) {
+  if (lastTempFile && (lastTempFile === audio || lastTempFile.includes(audio))) {
     const musicFolder = getMusicFolder();
     try {
       unlinkSync(join(musicFolder+'/', lastTempFile));
