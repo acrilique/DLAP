@@ -17,7 +17,7 @@ export async function ripAudio(searchterm){
   
   if (res.toString().includes("No search results")){
     console.log("Searchin' on soundcloud instead...");
-    res = execPromise("rip search soundcloud track --first '"+searchterm+"'");
+    res = await execPromise("rip search soundcloud track --first '"+searchterm+"'");
   }
 
   if (res.toString().includes("No search results")){
