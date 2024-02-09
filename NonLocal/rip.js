@@ -12,12 +12,12 @@ export async function ripAudio(searchterm){
   // sanitize searchterm
   searchterm = searchterm.replace(/[^a-zA-Z0-9 ]/g, "");
   
-  let res = await execPromise("rip search tidal track --first '"+searchterm+"'");
+  let res = await execPromise("/home/llucsm/.local/bin/rip search tidal track --first '"+searchterm+"'");
   console.log(res.toString());
   
   if (res.toString().includes("No search results")){
     console.log("Searchin' on soundcloud instead...");
-    res = execPromise("rip search soundcloud track --first '"+searchterm+"'");
+    res = execPromise("/home/llucsm/.local/bin/rip search soundcloud track --first '"+searchterm+"'");
   }
 
   if (res.toString().includes("No search results")){
