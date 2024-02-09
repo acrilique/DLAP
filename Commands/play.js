@@ -66,18 +66,18 @@ export default {
       let match = searchForTrackLocally(search_term);
       if (match === null) {
         await interaction.reply({ content: 'Ripping audio from Tidal', ephemeral: true });
-        let rip = ripAudio(search_term);
+        const rip = await ripAudio(search_term);
         if (rip === "No results found"){
           try {
             await interaction.reply({ content: 'No results found', ephemeral: true });
           } 
           catch (e) {
-            console.error(e);
+            console.log(e);
           }
           updatePlaylist('next');
           return;
         }
-        setAudioFile(ripAudio(search_term));
+        setAudioFile(rip);
       } else {
         setAudioFile(match);
         await interaction.reply({ content: `Now playing: ${audio}`, ephemeral: true });

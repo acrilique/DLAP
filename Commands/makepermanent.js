@@ -3,7 +3,8 @@ import { PermissionFlagsBits } from 'discord-api-types/v10';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { audio } from '../AudioBackend/PlayAudio.js';
-import { makeFilePermanent, getFiles, folder } from '../AudioBackend/AudioControl.js';
+import { makeFilePermanent, getFiles } from '../AudioBackend/AudioControl.js';
+import { musicFolder } from '../bot.js';
 const { djRole, ownerID } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
 export default {
@@ -29,7 +30,7 @@ export default {
     }
   
     // Check if the file exists
-    if (!existsSync(join(folder+'/', filename))) {
+    if (!existsSync(join(musicFolder+'/', filename))) {
       return await interaction.reply({ content: 'The track: \n' + audio + '\n does not exist in the playlist!', ephemeral: true });
     }
   

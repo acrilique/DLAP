@@ -27,6 +27,8 @@ const { token, statusChannel, voiceChannel, djRole, ownerID, shuffle, repeat, pr
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] });
 bot.login(token);
 
+export const musicFolder = JSON.parse(readFileSync('./config.json', 'utf-8')).musicFolder;
+
 export async function setAvatar(b64string) {
   if (!bot.user) {
     throw new Error('Bot is not ready yet');

@@ -19,14 +19,13 @@
  *
  ***************************************************************************/
 import { statSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { shufflePlaylist, orderPlaylist, setFiles, files } from './QueueSystem.js';
+import { shufflePlaylist, orderPlaylist, files } from './QueueSystem.js';
 import { playAudio, currentTrack, updatePlaylist } from './PlayAudio.js';
 import { player } from './VoiceInitialization.js';
 import { join } from 'node:path';
+import { musicFolder } from '../bot.js';
 
-const { shuffle, repeat, musicFolder } = JSON.parse(readFileSync('./config.json', 'utf-8'));
-
-export const folder = musicFolder;
+const { shuffle, repeat } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
 export function getTempFiles() {
   try {
@@ -39,7 +38,7 @@ export function getTempFiles() {
 }
 
 export function getFiles() {
-  return readdirSync(folder).filter(item => statSync( "music/"+item ).isFile());
+  return readdirSync(musicFolder).filter(item => statSync( musicFolder+'/'+item ).isFile());
 }
 
 export function makeFilePermanent(file) {
@@ -56,7 +55,7 @@ export function cleanTempFiles() {
   const tempFiles = getTempFiles();
   for (let i = 0; i < tempFiles.length; i++) {
     try {
-      unlinkSync(join(folder+'/', tempFiles[i]));
+      unlinkSync(join(musicFolder+'/', tempFiles[i]));
     } catch (err) {
       console.log(`File: ${tempFiles[i]} was probably already deleted`);
     }

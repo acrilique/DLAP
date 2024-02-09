@@ -24,9 +24,9 @@ import { readFileSync, writeFile } from 'node:fs';
 import { EmbedBuilder } from 'discord.js';
 import { player } from './VoiceInitialization.js';
 import { files } from './QueueSystem.js';
-import { audioState, getFiles, nextAudio, folder } from './AudioControl.js';
+import { audioState, getFiles, nextAudio } from './AudioControl.js';
 import { integer } from '../Commands/play.js';
-import { setAvatar } from '../bot.js';
+import { musicFolder, setAvatar } from '../bot.js';
 const { statusChannel, txtFile } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
 let fileData;
@@ -54,7 +54,7 @@ export async function playAudio(bot) {
     return nextAudio(bot);
   }
   console.log('files: ' + files.length);
-  const resource = createAudioResource(folder+'/' + audio);
+  const resource = createAudioResource(musicFolder+'/' + audio);
   player.play(resource);
 
   console.log(`Now playing: ${audio}`);
@@ -64,7 +64,7 @@ export async function playAudio(bot) {
   const audioFile = audio;
 
   try {
-    const { common, format } = await parseFile(folder+'/' + audio);
+    const { common, format } = await parseFile(musicFolder+'/' + audio);
     metadataEmpty = false;
     if (common.title && common.artist && common.year && common.album) {
       audioTitle = common.title;
