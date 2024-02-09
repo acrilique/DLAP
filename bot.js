@@ -19,7 +19,6 @@
  *
  ***************************************************************************/
 import { Client, Events, GatewayIntentBits, EmbedBuilder, Collection, version, InteractionType } from 'discord.js';
-import { voiceInit } from './AudioBackend/VoiceInitialization.js';
 import { readdirSync, readFileSync } from 'node:fs';
 import { cleanTempFiles } from './AudioBackend/AudioControl.js';
 // import config from './config.json' assert { type: 'json' } Not supported by ESLint yet
@@ -27,7 +26,8 @@ const { token, statusChannel, voiceChannel, djRole, ownerID, shuffle, repeat, pr
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] });
 bot.login(token);
 
-export const musicFolder = JSON.parse(readFileSync('./config.json', 'utf-8')).musicFolder;
+const musicFolder = JSON.parse(readFileSync('./config.json', 'utf-8')).musicFolder;
+export const getMusicFolder = () => musicFolder;
 
 export async function setAvatar(b64string) {
   if (!bot.user) {
@@ -89,7 +89,7 @@ bot.once(Events.ClientReady, async() => {
 
   cleanTempFiles();
 
-  return await voiceInit(bot);
+  return;
 });
 
 bot.on(Events.InteractionCreate, async interaction => {

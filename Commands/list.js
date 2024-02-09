@@ -21,16 +21,22 @@
 
 import { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder } from 'discord.js';
 import { readdir } from 'node:fs';
+import { getMusicFolder } from '../bot.js';
 
-const musicFolder = './music';
+const musicFolder = getMusicFolder();
 
 function createEmbed(bot, trackList, pages, page, numPages) {
-  const embed = new EmbedBuilder();
-  embed.setAuthor({ name: `${bot.user.username} List`, iconURL: bot.user.avatarURL() });
-  embed.addFields({ name: `Listing ${trackList.length} audio tracks...`, value: `\`\`\`\n${pages[page - 1].join('\n')}\n\`\`\`` });
-  embed.setFooter({ text: `Page ${page}/${numPages}` });
-  embed.setColor('#0066ff');
-  return embed;
+  try {
+    const embed = new EmbedBuilder();
+    embed.setAuthor({ name: `${bot.user.username} List`, iconURL: bot.user.avatarURL() });
+    embed.addFields({ name: `Listing ${trackList.length} audio tracks...`, value: `\`\`\`\n${pages[page - 1].join('\n')}\n\`\`\`` });
+    embed.setFooter({ text: `Page ${page}/${numPages}` });
+    embed.setColor('#0066ff');
+    return embed;
+  } catch (error) {
+    console.log(error);
+    return "";
+  }
 }
 
 function createActionRow(page, numPages) {
@@ -81,7 +87,7 @@ export default {
         const listEmbed = createEmbed(bot, trackList, pages, page, numPages);
         const row = createActionRow(page, numPages);
 
-        await interaction.reply({ embeds: [listEmbed], components: [row] });
+        if (listEmbed !== "") { await interaction.reply({ embeds: [listEmbed], components: [row] }); }
 
         // Create a message collector to listen for button clicks
         const filter = i => i.customId === 'previous' || i.customId === 'next';
@@ -97,11 +103,12 @@ export default {
           }
 
           // Update the embed with the new page
+
           const updatedEmbed = createEmbed(bot, trackList, pages, page, numPages);
           const updatedRow = createActionRow(page, numPages);
 
           // Update the message
-          await i.update({ embeds: [updatedEmbed], components: [updatedRow] });
+          if (updatedEmbed !== "") { await i.update({ embeds: [updatedEmbed], components: [updatedRow] }); }
         });
       }
     });

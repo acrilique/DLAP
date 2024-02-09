@@ -30,10 +30,10 @@ export default {
     .setName('join')
     .setDescription('Joins voice chat'),
   async execute(interaction, bot) {
-    if (!interaction.member.voice.channel) return await interaction.reply({ content: 'You need to be in a voice channel to use this command.', ephemeral: true });
+    const channel = interaction.member.voice.channel;
+    if (!channel) return await interaction.reply({ content: 'You need to be in a voice channel to use this command.', ephemeral: true });
     if (!interaction.member.roles.cache.has(djRole) && interaction.user.id !== ownerID && !interaction.member.permission.has(PermissionFlagsBits.ManageGuild)) return interaction.reply({ content: 'You need a specific role to execute this command', ephemeral: true });
-
     await interaction.reply({ content: 'Joining voice channel', ephemeral: true });
-    return await voiceInit(bot);
+    return await voiceInit(bot, channel.id);
   }
 };

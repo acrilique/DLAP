@@ -26,8 +26,8 @@ import { votes } from '../Utilities/Voting.js';
 
 const { voiceChannel, shuffle } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 export const player = createAudioPlayer();
-export async function voiceInit(bot) {
-  bot.channels.fetch(voiceChannel).then(async channel => {
+export async function voiceInit(bot, userChannel = voiceChannel) {
+  bot.channels.fetch(userChannel).then(async channel => {
     const connection = joinVoiceChannel({
       channelId: channel.id,
       guildId: channel.guild.id,

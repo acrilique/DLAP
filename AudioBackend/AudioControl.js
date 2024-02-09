@@ -19,11 +19,11 @@
  *
  ***************************************************************************/
 import { statSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { getMusicFolder } from '../bot.js';
 import { shufflePlaylist, orderPlaylist, files } from './QueueSystem.js';
-import { playAudio, currentTrack, updatePlaylist } from './PlayAudio.js';
+import { playAudio, currentTrack, updatePlaylist, setAudioFile, audio } from './PlayAudio.js';
 import { player } from './VoiceInitialization.js';
 import { join } from 'node:path';
-import { musicFolder } from '../bot.js';
 
 const { shuffle, repeat } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
@@ -38,6 +38,7 @@ export function getTempFiles() {
 }
 
 export function getFiles() {
+  const musicFolder = getMusicFolder();
   return readdirSync(musicFolder).filter(item => statSync( musicFolder+'/'+item ).isFile());
 }
 
@@ -53,6 +54,7 @@ export function makeFilePermanent(file) {
 
 export function cleanTempFiles() {
   const tempFiles = getTempFiles();
+  const musicFolder = getMusicFolder();
   for (let i = 0; i < tempFiles.length; i++) {
     try {
       unlinkSync(join(musicFolder+'/', tempFiles[i]));
@@ -64,6 +66,26 @@ export function cleanTempFiles() {
     unlinkSync('tmp.txt');
   } catch (err) {
     console.log('Temporary file not found');
+  }
+}
+
+function nextTempFile() {
+  const tempFiles = getTempFiles();
+  const newTempFiles = tempFiles.slice(1);
+  const lastTempFile = tempFiles[0];
+  // check if lastTempFile is equal or contains the current track (audio)
+  if (lastTempFile === audio || lastTempFile.includes(audio)) {
+    const musicFolder = getMusicFolder();
+    try {
+      unlinkSync(join(musicFolder+'/', lastTempFile));
+    } catch (err) {
+      console.log(`File: ${lastTempFile} was probably already deleted`);
+    }
+    if (newTempFiles.length === 0) return unlinkSync('tmp.txt');
+    writeFileSync('tmp.txt', newTempFiles.join('\n'));
+    return newTempFiles[0];
+  } else {
+    return lastTempFile;
   }
 }
 
@@ -91,10 +113,15 @@ export async function nextAudio(bot, interaction) {
     return await repeatCheck(bot);
   } else {
     if (interaction !== undefined) {await interaction.reply({ content: 'Playing next track' }); }
-    cleanTempFiles();
-    totalTrack = files.length;
-    updatePlaylist('next');
-    return await playAudio(bot);
+    const track = nextTempFile();
+    if (track === undefined) {
+      totalTrack = files.length;
+      updatePlaylist('next');
+      return await playAudio(bot);
+    } else {
+      setAudioFile(track);
+      return await playAudio(bot);
+    }
   }
 }
 
