@@ -21,7 +21,7 @@
 import { statSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { getMusicFolder } from '../bot.js';
 import { shufflePlaylist, orderPlaylist, files } from './QueueSystem.js';
-import { playAudio, currentTrack, updatePlaylist, setAudioFile, audio } from './PlayAudio.js';
+import { playAudio, currentTrack, updatePlaylist, setAudioFile } from './PlayAudio.js';
 import { player } from './VoiceInitialization.js';
 import { join } from 'node:path';
 
@@ -74,7 +74,8 @@ function nextTempFile() {
   const newTempFiles = tempFiles.slice(1);
   const lastTempFile = tempFiles[0];
   // check if lastTempFile is equal or contains the current track (audio)
-  if (lastTempFile && (lastTempFile === audio || lastTempFile.includes(audio))) {
+  console.log(currentTrack)
+  if (lastTempFile && (lastTempFile === currentTrack || lastTempFile.includes(currentTrack))) {
     const musicFolder = getMusicFolder();
     try {
       unlinkSync(join(musicFolder+'/', lastTempFile));
