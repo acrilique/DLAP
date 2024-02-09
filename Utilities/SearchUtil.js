@@ -1,7 +1,7 @@
-import { getLocalFiles, getTempFiles } from '../AudioBackend/AudioControl.js';
+import { getFiles, getTempFiles } from '../AudioBackend/AudioControl.js';
 
 export function searchForTrackLocally(searchterm){
-    const localFiles = getLocalFiles();
+    const localFiles = getFiles();
     const match_index = lowestLevenshteinDistanceIndex(searchterm, localFiles);
     console.log("match index: "+match_index);
     if (match_index === -1) {
@@ -62,8 +62,4 @@ function levenshteinDistance(a, b) {
   }
   
   return matrix[b.length][a.length];
-}
-  
-function fuzzyMatch(pattern, string) {
-  return levenshteinDistance(pattern, string) < pattern.length / 2; // Adjust this threshold as needed
 }

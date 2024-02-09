@@ -21,6 +21,7 @@
 import { Client, Events, GatewayIntentBits, EmbedBuilder, Collection, version, InteractionType } from 'discord.js';
 import { voiceInit } from './AudioBackend/VoiceInitialization.js';
 import { readdirSync, readFileSync } from 'node:fs';
+import { cleanTempFiles } from './AudioBackend/AudioControl.js';
 // import config from './config.json' assert { type: 'json' } Not supported by ESLint yet
 const { token, statusChannel, voiceChannel, djRole, ownerID, shuffle, repeat, presenceActivity, activityType } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] });
@@ -30,7 +31,11 @@ export async function setAvatar(b64string) {
   if (!bot.user) {
     throw new Error('Bot is not ready yet');
   }
-  return await bot.user.setAvatar(b64string);
+  try {
+    await bot.user.setAvatar(b64string);
+  } catch (e) {
+    console.log("Avatar change is probably in cooldown...");
+  }
 }
 
 // Slash Command Handler
@@ -80,6 +85,8 @@ bot.once(Events.ClientReady, async() => {
   if (!channel) return console.error('The status channel does not exist! Skipping.');
   await channel.send({ embeds: [readyEmbed] });
 
+  cleanTempFiles();
+
   return await voiceInit(bot);
 });
 
@@ -93,7 +100,7 @@ bot.on(Events.InteractionCreate, async interaction => {
   try {
     await command.execute(interaction, bot);
   } catch (e) {
-    console.error(e);
+    console.log(e);
     await interaction.reply({ content: `There was an error while executing this command...\nShare this to the bot owner or report it to the git repository in \`/about\`\n\nDetails:\`\`\`${e}\`\`\``, ephemeral: true });
   }
 });

@@ -21,8 +21,8 @@
 
 import { SlashCommandBuilder } from 'discord.js';
 import { inputAudio } from '../AudioBackend/QueueSystem.js';
-import { getLocalFiles, isAudioStatePaused, setTempBool, toggleAudioState, tempbool } from '../AudioBackend/AudioControl.js';
-import { audio, playAudio, setAudioFile } from '../AudioBackend/PlayAudio.js';
+import { getFiles, isAudioStatePaused, toggleAudioState } from '../AudioBackend/AudioControl.js';
+import { audio, playAudio, setAudioFile, updatePlaylist } from '../AudioBackend/PlayAudio.js';
 import { PermissionFlagsBits } from 'discord-api-types/v10';
 import { readFileSync, unlinkSync } from 'node:fs';
 import { votes } from '../Utilities/Voting.js';
@@ -51,35 +51,34 @@ export default {
     if (!interaction.member.voice.channel) return await interaction.reply({ content: 'You need to be in a voice channel to use this command.', ephemeral: true });
     // if (!interaction.member.roles.cache.has(djRole) && interaction.user.id !== ownerID && !interaction.member.permission.has(PermissionFlagsBits.ManageGuild)) return interaction.reply({ content: 'You need a specific role to execute this command', ephemeral: true });
     
-    let temporal_previous_file;
-    if (tempbool === true && !isAudioStatePaused) {
-      temporal_previous_file = 'music/tmp/' + audio;
-    } else {
-      temporal_previous_file = null;
-    }
-
     integer = interaction.options.getInteger('int');
     search_term = interaction.options.getString('search_term');
     if (integer) {
-      if (integer < getLocalFiles().length) {
+      if (integer < getFiles().length) {
         await inputAudio(bot, integer);
-        if (temporal_previous_file !== null) {
-          unlinkSync(temporal_previous_file);
-        }
         await votes.clear();
         return await interaction.reply({ content: `Now playing: ${audio}`, ephemeral: true });
       } else {
-        return await interaction.reply({ content: 'Number is too big, choose a number that\'s less than ' + getLocalFiles().length + '.', ephemeral: true });
+        return await interaction.reply({ content: 'Number is too big, choose a number that\'s less than ' + getFiles().length + '.', ephemeral: true });
       }
     }
     if (search_term) {
       let match = searchForTrackLocally(search_term);
       if (match === null) {
-        setTempBool(true);
         await interaction.reply({ content: 'Ripping audio from Tidal', ephemeral: true });
+        let rip = ripAudio(search_term);
+        if (rip === "No results found"){
+          try {
+            await interaction.reply({ content: 'No results found', ephemeral: true });
+          } 
+          catch (e) {
+            console.error(e);
+          }
+          updatePlaylist('next');
+          return;
+        }
         setAudioFile(ripAudio(search_term));
       } else {
-        setTempBool(false);
         setAudioFile(match);
         await interaction.reply({ content: `Now playing: ${audio}`, ephemeral: true });
       }

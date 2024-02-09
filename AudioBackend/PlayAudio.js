@@ -20,12 +20,12 @@
  ***************************************************************************/
 import { createAudioResource } from '@discordjs/voice';
 import { parseFile } from 'music-metadata';
-import { readdirSync, readFileSync, statSync, writeFile } from 'node:fs';
+import { readFileSync, writeFile } from 'node:fs';
 import { EmbedBuilder } from 'discord.js';
 import { player } from './VoiceInitialization.js';
 import { files } from './QueueSystem.js';
-import { audioState, tempbool, getFiles, getLocalFiles, nextAudio } from './AudioControl.js';
-import { integer, search_term } from '../Commands/play.js';
+import { audioState, getFiles, nextAudio, folder } from './AudioControl.js';
+import { integer } from '../Commands/play.js';
 import { setAvatar } from '../bot.js';
 const { statusChannel, txtFile } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
@@ -46,16 +46,15 @@ export function setAudioFile(file) {
   audio = file;
 }
 
-const inputFiles = getLocalFiles();
+const inputFiles = getFiles();
 
 export async function playAudio(bot) {
   if (audio === undefined) {
     console.log('No audio file to play!');
     return nextAudio(bot);
   }
-  const resource = tempbool 
-  ? createAudioResource('music/tmp/' + audio) 
-  : createAudioResource('music/' + audio);
+  console.log('files: ' + files.length);
+  const resource = createAudioResource(folder+'/' + audio);
   player.play(resource);
 
   console.log(`Now playing: ${audio}`);
@@ -65,9 +64,7 @@ export async function playAudio(bot) {
   const audioFile = audio;
 
   try {
-    const { common, format } = tempbool 
-    ? await parseFile('music/tmp/' + audio)
-    : await parseFile('music/' + audio);
+    const { common, format } = await parseFile(folder+'/' + audio);
     metadataEmpty = false;
     if (common.title && common.artist && common.year && common.album) {
       audioTitle = common.title;
@@ -130,15 +127,11 @@ export function updatePlaylist(option) {
       audio = files[currentTrack];
       break;
     case 'reset':
-      if (tempbool === false) {
-        currentTrack = 0;
-        audio = files[currentTrack];
-      }
+      currentTrack = 0;
+      audio = files[currentTrack];
       break;
     case 'input':
-      if (tempbool === false) { 
-        audio = inputFiles[integer];
-      }
+      audio = inputFiles[integer];
       break;
     case 'stop':
       audio = 'Not Playing';

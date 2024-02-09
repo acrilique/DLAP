@@ -18,42 +18,60 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  ***************************************************************************/
-import { statSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
+import { statSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { shufflePlaylist, orderPlaylist, setFiles, files } from './QueueSystem.js';
-import { playAudio, currentTrack, updatePlaylist, audio } from './PlayAudio.js';
+import { playAudio, currentTrack, updatePlaylist } from './PlayAudio.js';
 import { player } from './VoiceInitialization.js';
 import { join } from 'node:path';
 
-const { shuffle, repeat } = JSON.parse(readFileSync('./config.json', 'utf-8'));
+const { shuffle, repeat, musicFolder } = JSON.parse(readFileSync('./config.json', 'utf-8'));
 
-export let tempbool = false;
-
-export function setTempBool(bool) {
-  tempbool = bool;
-  setFiles();
-}
+export const folder = musicFolder;
 
 export function getTempFiles() {
-  return readdirSync('music/tmp').filter(item => statSync( "music/tmp/"+item ).isFile());
-}
-
-export function getLocalFiles() {
-  return readdirSync('music').filter(item => statSync( "music/"+item ).isFile());
+  try {
+  return readFileSync('tmp.txt', 'utf-8').split('\n');
+  }
+  catch (err) {
+    console.log('No temporary files found.');
+    return [];
+  }
 }
 
 export function getFiles() {
+  return readdirSync(folder).filter(item => statSync( "music/"+item ).isFile());
+}
+
+export function makeFilePermanent(file) {
+  const tempFiles = getTempFiles();
   try {
-    const files = tempbool ? getTempFiles() : getLocalFiles();
-    return files;
+    tempFiles.splice(tempFiles.indexOf(file), 1);
+    writeFileSync('tmp.txt', tempFiles.join('\n'));
   } catch (err) {
-    return getLocalFiles();
+    console.log('File not found in temporary files');
+  }
+}
+
+export function cleanTempFiles() {
+  const tempFiles = getTempFiles();
+  for (let i = 0; i < tempFiles.length; i++) {
+    try {
+      unlinkSync(join(folder+'/', tempFiles[i]));
+    } catch (err) {
+      console.log(`File: ${tempFiles[i]} was probably already deleted`);
+    }
+  }
+  try {
+    unlinkSync('tmp.txt');
+  } catch (err) {
+    console.log('Temporary file not found');
   }
 }
 
 export let playerState;
 export let isAudioStatePaused;
 
-let totalTrack = getLocalFiles().length;
+let totalTrack = getFiles().length;
 
 async function repeatCheck(bot) {
   if (repeat) {
@@ -67,36 +85,15 @@ async function repeatCheck(bot) {
   }
 }
 
-function deleteFile(filePath) {
-  try {
-    unlinkSync(filePath);
-    console.log(`Deleted file: ${filePath}`);
-  } catch (err) {
-    console.error(`Error deleting file: ${filePath}`, err);
-  }
-}
 
 export async function nextAudio(bot, interaction) {
 
-  const files = getTempFiles();
-  if (tempbool === true) {
-    const filesToDelete = files.filter(file => file.startsWith(audio));
-
-    for (const file of filesToDelete) {
-      unlinkSync(join('music/tmp', file));
-    }
-  } else {
-    for (const file of files) {
-      unlinkSync(join('music/tmp', file));
-    }
-  }
-  if (readdirSync('music/tmp').length === 0) {
-    tempbool = false;
-  }
   if (currentTrack >= totalTrack - 1) {
     return await repeatCheck(bot);
   } else {
     if (interaction !== undefined) {await interaction.reply({ content: 'Playing next track' }); }
+    cleanTempFiles();
+    totalTrack = files.length;
     updatePlaylist('next');
     return await playAudio(bot);
   }
@@ -135,9 +132,8 @@ export function audioState(state) {
       break;
     case 2:
       playerState = 'Stopped';
-      for (let i = 0; i < getTempFiles().length; i++) {
-        deleteFile('music/tmp/' + getTempFiles()[i]);
-      }
+      cleanTempFiles();
+      repeatCheck();
       totalTrack = files.length;
       isAudioStatePaused = true;
       player.stop();
