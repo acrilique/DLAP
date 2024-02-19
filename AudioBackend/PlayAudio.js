@@ -96,10 +96,14 @@ export async function playAudio(bot) {
   const statusEmbed = new EmbedBuilder();
   if (metadataEmpty) {
     statusEmbed.setTitle('Now Playing');
-    statusEmbed.addFields(
-      { name: 'Title', value: `${audio}` },
-      { name: 'Duration', value: `${duration}` }
-    );
+    try {  
+      statusEmbed.addFields(
+        { name: 'Title', value: `${audio}` },
+        { name: 'Duration', value: `${duration}` }
+      );
+    } catch (e) {
+      console.log(e);
+    }
     statusEmbed.setColor('#0066ff');
   } else {
     statusEmbed.setTitle('Now Playing');
