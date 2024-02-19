@@ -45,8 +45,7 @@ export default {
         .setDescription('Search for a music track')
         .addStringOption(option =>
           option.setName('search_term')
-            .setDescription('Input a search term for the music.')  
-            .setRequired(true)
+            .setDescription('Input a search term for the music.')
         )
     )
     .addIntegerOption(option =>
