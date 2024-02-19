@@ -17,13 +17,13 @@ export async function ripAudio(searchterm){
   
   if (res.toString().includes("No search results")){
     console.log("Searchin' on soundcloud instead...");
-    res = await execPromise("/home/llucsm/.local/bin/rip search soundcloud track --first '"+searchterm+"'");
+    try {
+      res = await execPromise("/home/llucsm/.local/bin/rip search soundcloud track --first '"+searchterm+"'");
+    } catch (e) {
+      console.log(e);
+      return "No results found";
+    }  
   }
-
-  if (res.toString().includes("No search results")){
-    return "No results found";
-  }
-
   console.log("Rip complete");
 
   const files = getFiles();
