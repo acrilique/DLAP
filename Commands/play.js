@@ -39,14 +39,9 @@ export default {
   data: new SlashCommandBuilder()
     .setName('play')
     .setDescription('Resumes music')
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName('search')
-        .setDescription('Search for a music track')
-        .addStringOption(option =>
-          option.setName('search_term')
-            .setDescription('Input a search term for the music.')
-        )
+    .addStringOption(option =>
+      option.setName('search_term')
+        .setDescription('Input a search term for the music.')  
     )
     .addIntegerOption(option =>
       option.setName('int')
