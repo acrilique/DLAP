@@ -1,3 +1,7 @@
+# FORK
+
+This fork of the DLAP bot lets you combine the ability to play local audio files with the ability to query and play music from the internet (tidal, soundcloud and probably youtube in the near future). It requires Streamrip and FFMPEG so you should have those 2 installed in your system. You should also configure the location where streamrip downloads files by editing the config.toml file (you can invoke it by doing `rip config open`) and add that to the config.json file that you download from here.
+
 # DLAP Bot (Discord.JS Local Audio Player)
 
 DLAP is a Discord bot that lets you play local audio tracks in your server. With DLAP, you can access your music files, and share your tunes with your friends and community. DLAP offers seamless integration with Discord, so you can enjoy your music without missing a beat.
